@@ -54,6 +54,9 @@ npm install
 DATABASE_URL="postgresql://username:password@localhost:5432/news_portal"
 JWT_SECRET="your-secret-key"
 PORT=3000
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
 ```
 
 4. **Run Prisma migrations**:
