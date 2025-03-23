@@ -1,0 +1,100 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  EDITOR
+  ADMIN
+}
+
+enum ArticleStatus {
+  DRAFT
+  PENDING
+  PUBLISHED
+  REJECTED
+}
+
+model User {
+  id                String         @id @default(cuid())
+  email             String         @unique
+  name              String
+  password          String
+  role              UserRole       @default(USER)
+  profilePicture    String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  articles          Article[]
+  savedArticles     SavedArticle[]
+  followedCategories Category[]     @relation("UserCategories")
+  likes             Like[]
+}
+
+model Article {
+  id            String         @id @default(cuid())
+  title         String
+  content       String
+  summary       String?        // Short summary for preview
+  imageUrl      String?        // Cloudinary URL
+  authorId      String
+  author        User          @relation(fields: [authorId], references: [id])
+  categoryId    String
+  category      Category      @relation(fields: [categoryId], references: [id])
+  tags          Tag[]         // Many-to-many relation with tags
+  views         Int           @default(0)
+  likes         Like[]        // Track likes for trending
+  status        ArticleStatus @default(DRAFT)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  savedBy       SavedArticle[]
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  articles    Article[]
+  followers   User[]    @relation("UserCategories") // Users following this category
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Tag {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  articles    Article[]
+  createdAt   DateTime  @default(now())
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  userId    String
+  articleId String
+  user      User     @relation(fields: [userId], references: [id])
+  article   Article  @relation(fields: [articleId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, articleId])
+}
+
+model SavedArticle {
+  id        String   @id @default(cuid())
+  userId    String
+  articleId String
+  user      User     @relation(fields: [userId], references: [id])
+  article   Article  @relation(fields: [articleId], references: [id])
+  savedAt   DateTime @default(now())
+
+  @@unique([userId, articleId])
+}
